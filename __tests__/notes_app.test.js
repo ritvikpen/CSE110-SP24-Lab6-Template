@@ -1,17 +1,9 @@
 const puppeteer = require('puppeteer');
 
 describe('Notes App', () => {
-  let browser;
-  let page;
 
   beforeAll(async () => {
-    browser = await puppeteer.launch();
-    page = await browser.newPage();
-    await page.goto('http://127.0.0.1:5500/index.html');
-  });
-
-  afterAll(() => {
-    browser.close();
+    await page.goto('https://ritvikpen.github.io/CSE110-SP24-Lab6-Template/');
   });
 
   test('Add note', async () => {
@@ -22,29 +14,36 @@ describe('Notes App', () => {
 
   test('Edit new note', async () => {
     await page.click('.add-note');
+    await page.focus('.note');
     await page.keyboard.type('Test note');
-    const noteText = await page.$eval('.note', note => note.innerText);
+    const noteText = await page.$eval('.note', note => note.value);
     expect(noteText).toBe('Test note');
   }, 10000);
   
   test('Edit existing note', async () => {
-    await page.click('.note');
+    await page.click('.add-note');
+    await page.focus('.note');
     await page.keyboard.type(' Updated');
-    const noteText = await page.$eval('.note', note => note.innerText);
+    const noteText = await page.$eval('.note', note => note.value);
     expect(noteText).toBe('Test note Updated');
   }, 10000);
-  
+
   test('Notes preserved after refresh', async () => {
+    await page.click('body');
+    // Reload the page
     await page.reload();
     await page.waitForSelector('.note');
-    const noteText = await page.$eval('.note', note => note.innerText);
+    const noteText = await page.$eval('.note', note => note.value);
     expect(noteText).toBe('Test note Updated');
   }, 10000);
 
   test('Delete note', async () => {
     await page.click('.note');
-    await page.mouse.click(100, 100, { clickCount: 2 }); // replace 100, 100 with the coordinates of the note
-    await page.waitForTimeout(1000); // wait for the deletion to take effect
+    await page.click('.note', { clickCount: 2 });
+    await page.click('.note');
+    await page.click('.note', { clickCount: 2 });
+    await page.click('.note');
+    await page.click('.note', { clickCount: 2 });
     const notes = await page.$$('.note');
     expect(notes.length).toBe(0);
   }, 10000);
